@@ -1,6 +1,7 @@
 <template>
   <div id="burguer-table">
     <div>
+        <Message :msg="msg" v-show="msg"/>
         <div id="burguer-table-heading">
             <div class="order-id">#:</div>
             <div>Cliente:</div>
@@ -20,9 +21,9 @@
                     </ul>
                 </div>
                 <div>
-                    <select name="status" class="status">
+                    <select name="status" class="status" @change="updateBurger($event, burger.id)">
                         <option value="">Selecione</option>
-                        <option value="sta.tipo" v-for="sta in status" :key="sta.id" :selected="burger.status == sta.tipo">{{sta.tipo}}</option>
+                        <option :value="sta.tipo" v-for="sta in status" :key="sta.id" :selected="burger.status == sta.tipo">{{sta.tipo}}</option>
                     </select>
                     <button class="delete-btn" @click="deleteBurger(burger.id)">Cancelar</button>
                 </div>
@@ -33,13 +34,16 @@
 </template>
 
 <script>
+import Message from './Message.vue';
+
 export default {
     name: 'Dashboard',
     data() {
         return {
             burgers: null,
             burgers_id: null,
-            status: []
+            status: [],
+            msg: null,
         }
     },
     methods: {
@@ -66,11 +70,36 @@ export default {
 
             const res = await req.json();
 
+            this.msg = `Pedido deletado!`;
+
+            setTimeout(() => this.msg = '', 3000);
+
             this.getPedidos();
+        },
+        async updateBurger(event, id) {
+            const option = event.target.value;
+
+            const dataJson = JSON.stringify({status: option});
+
+            const req = await fetch(`http://localhost:3000/burgers/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: dataJson
+            });
+
+            const res = await req.json();
+
+            this.msg = `Pedido n°${res.id} atualizado com sucesso!`;
+            
+            setTimeout(() => this.msg = '', 3000);
+
         }
     },
     mounted() {
         this.getPedidos();
+    },
+    components: {
+        Message
     }
 }
 </script>
